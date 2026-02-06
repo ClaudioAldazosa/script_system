@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { Loader2, LayoutDashboard, AlertCircle } from "lucide-react"; // Added Icons
 import KPICards from "@/components/dashboard/KPICards";
 import InfluencerTable from "@/components/dashboard/InfluencerTable";
 import ScriptTable from "@/components/dashboard/ScriptTable";
@@ -33,7 +34,7 @@ export default function Dashboard() {
   const currentKPI = kpiData ? kpiData[platform] : null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 min-h-screen">
       <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-purple-500 neon-text">Dashboard</h1>
@@ -74,17 +75,37 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {(isLoading || !currentKPI) ? (
-        <div className="flex h-96 items-center justify-center">
-          {isLoading ? (
-            <div className="text-gray-500">Loading dashboard data...</div>
-          ) : (
-            <div className="text-gray-500">No data available for {platform}</div>
-          )}
+      {isLoading ? (
+        <div className="flex h-[60vh] flex-col items-center justify-center space-y-6">
+          <div className="relative">
+            <div className="absolute inset-0 h-16 w-16 rounded-full bg-purple-500/20 blur-xl animate-pulse"></div>
+            
+            <div className="relative h-16 w-16 animate-spin rounded-full border-2 border-white/5 border-t-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.3)]"></div>
+            
+            <div className="absolute inset-0 m-auto h-10 w-10 animate-[spin_1.5s_linear_infinite] rounded-full border-2 border-white/5 border-b-purple-500"></div>
+          </div>
+          
+          <div className="flex flex-col items-center space-y-2">
+            <span className="text-sm font-medium text-transparent bg-clip-text bg-linear-to-r from-cyan-200 to-purple-200 animate-pulse">
+              Syncing live data...
+            </span>
+          </div>
         </div>
+
+      ) : !currentKPI ? (
+        <div className="flex h-[50vh] flex-col items-center justify-center text-center">
+          <div className="rounded-2xl bg-white/5 p-6 backdrop-blur-md border border-white/10 shadow-xl mb-4">
+             <LayoutDashboard className="h-10 w-10 text-gray-500 opacity-50" />
+          </div>
+          <h3 className="text-lg font-semibold text-white">No Data Available</h3>
+          <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">
+            We couldn't find any performance metrics for <span className="capitalize text-cyan-400">{platform}</span> in this date range.
+          </p>
+        </div>
+
       ) : (
         <>
-          <section>
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center">
               <span className="w-1 h-6 bg-cyan-400 rounded-full mr-3 shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
               Performance Overview
@@ -92,16 +113,15 @@ export default function Dashboard() {
             <KPICards data={currentKPI} />
           </section>
 
-          <section>
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center">
               <span className="w-1 h-6 bg-yellow-400 rounded-full mr-3 shadow-[0_0_10px_rgba(250,204,21,0.8)]"></span>
               AI Insights & Analysis
             </h2>
-
             <SmartInsights influencers={allInfluencers} kpi={kpiData} />
           </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white flex items-center">
@@ -110,7 +130,6 @@ export default function Dashboard() {
                 </h2>
               </div>
               <InfluencerTable data={allInfluencers ?? []} />   
-              <></>
             </section>
 
             <section>

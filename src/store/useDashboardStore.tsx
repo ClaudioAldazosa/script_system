@@ -67,10 +67,6 @@ export const useDashboardStore = create<DashboardState>((set) => ({
       const rawTiktokKpi = await tiktokKpiResponse.json();
       const rawTiktokInfluencers = await tiktokInfluencersResponse.json();
 
-      console.log("POOOOOOOOOOOOOOOOOOOO")
-      console.log(rawTiktokKpi)
-      console.log(rawTiktokInfluencers)
-
       const mappedInfluencers: Influencer[] = Array.isArray(rawTiktokInfluencers) 
         ? rawTiktokInfluencers.map((inf: any) => ({ ...inf, platform: 'tiktok' })) 
         : [];
