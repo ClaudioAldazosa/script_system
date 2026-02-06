@@ -33,7 +33,7 @@ export default function KPICards({ data }: KPICardsProps) {
     },
     {
       name: "ROI",
-      value: `${(data.global_roi_decimal * 100).toFixed(0)}%`, 
+      value: `${data.global_roi_decimal.toLocaleString()}`, 
       icon: Percent,
       color: "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]",
       bg: "bg-emerald-500/10 border border-emerald-500/20",

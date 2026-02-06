@@ -109,7 +109,7 @@ export default function InfluencerTable({ data }: InfluencerTableProps) {
                       {person.roas.toFixed(2)}x
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-emerald-400 font-medium">
-                      {(person.avg_roi * 100).toFixed(0)}%
+                      {person.avg_roi.toLocaleString()}x
                     </td>
                   </tr>
                 ))}
