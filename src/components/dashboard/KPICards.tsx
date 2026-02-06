@@ -1,37 +1,39 @@
-import { KPI } from "@/types";
 import { DollarSign, TrendingUp, Users, Percent } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { KPI } from "@/store/useDashboardStore"; 
 
 interface KPICardsProps {
   data: KPI;
 }
 
 export default function KPICards({ data }: KPICardsProps) {
+  if (!data) return null;
+
   const cards = [
     {
       name: "Total Revenue",
-      value: `$${data.revenue.toLocaleString()}`,
+      value: `$${data.total_gross_revenue.toLocaleString()}`,
       icon: DollarSign,
       color: "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]",
       bg: "bg-cyan-500/10 border border-cyan-500/20",
     },
     {
       name: "ROAS",
-      value: `${data.roas}x`,
+      value: `${data.global_roas.toFixed(2)}x`,
       icon: TrendingUp,
       color: "text-purple-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.8)]",
       bg: "bg-purple-500/10 border border-purple-500/20",
     },
     {
       name: "Ad Spend",
-      value: `$${data.spend.toLocaleString()}`,
+      value: `$${data.total_cost.toLocaleString()}`,
       icon: Users,
       color: "text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]",
       bg: "bg-pink-500/10 border border-pink-500/20",
     },
     {
       name: "ROI",
-      value: `${((data.revenue - data.spend) / data.spend * 100).toFixed(0)}%`,
+      value: `${data.global_roi_decimal.toLocaleString()}`, 
       icon: Percent,
       color: "text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]",
       bg: "bg-emerald-500/10 border border-emerald-500/20",

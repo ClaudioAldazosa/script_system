@@ -1,6 +1,6 @@
 'use client';
 
-import { Influencer, Platform } from "@/types";
+import { Influencer } from "@/store/useDashboardStore";
 import { useState } from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,11 +9,11 @@ interface InfluencerTableProps {
   data: Influencer[];
 }
 
-type SortField = 'name' | 'totalRevenue' | 'roas' | 'roi';
+type SortField = 'account' | 'total_revenue' | 'roas' | 'avg_roi';
 type SortDirection = 'asc' | 'desc';
 
 export default function InfluencerTable({ data }: InfluencerTableProps) {
-  const [sortField, setSortField] = useState<SortField>('totalRevenue');
+  const [sortField, setSortField] = useState<SortField>('total_revenue');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const handleSort = (field: SortField) => {
@@ -57,19 +57,19 @@ export default function InfluencerTable({ data }: InfluencerTableProps) {
             <table className="min-w-full divide-y divide-white/10">
               <thead className="bg-white/5">
                 <tr>
-                  <th scope="col" className="py-4 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6 cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => handleSort('name')}>
+                  <th scope="col" className="py-4 pl-4 pr-3 text-left text-sm font-semibold text-white sm:pl-6 cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => handleSort('account')}>
                     <div className="flex items-center">
                       Influencer
-                      <SortIcon field="name" />
+                      <SortIcon field="account" />
                     </div>
                   </th>
                   <th scope="col" className="px-3 py-4 text-left text-sm font-semibold text-white">
                     Platform
                   </th>
-                  <th scope="col" className="px-3 py-4 text-left text-sm font-semibold text-white cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => handleSort('totalRevenue')}>
+                  <th scope="col" className="px-3 py-4 text-left text-sm font-semibold text-white cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => handleSort('total_revenue')}>
                      <div className="flex items-center">
                       Revenue
-                      <SortIcon field="totalRevenue" />
+                      <SortIcon field="total_revenue" />
                     </div>
                   </th>
                   <th scope="col" className="px-3 py-4 text-left text-sm font-semibold text-white cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => handleSort('roas')}>
@@ -78,19 +78,19 @@ export default function InfluencerTable({ data }: InfluencerTableProps) {
                       <SortIcon field="roas" />
                     </div>
                   </th>
-                  <th scope="col" className="px-3 py-4 text-left text-sm font-semibold text-white cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => handleSort('roi')}>
+                  <th scope="col" className="px-3 py-4 text-left text-sm font-semibold text-white cursor-pointer hover:text-cyan-400 transition-colors" onClick={() => handleSort('avg_roi')}>
                      <div className="flex items-center">
                       ROI
-                      <SortIcon field="roi" />
+                      <SortIcon field="avg_roi" />
                     </div>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 bg-transparent">
                 {sortedData.map((person) => (
-                  <tr key={person.id} className="hover:bg-white/5 transition-colors">
+                  <tr key={person.account} className="hover:bg-white/5 transition-colors">
                     <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-white sm:pl-6">
-                      {person.name}
+                      {person.account}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">
                       <span className={cn(
@@ -103,13 +103,13 @@ export default function InfluencerTable({ data }: InfluencerTableProps) {
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">
-                      ${person.totalRevenue.toLocaleString()}
+                      ${person.total_revenue.toLocaleString()}
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-400">
-                      {person.roas}x
+                      {person.roas.toFixed(2)}x
                     </td>
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-emerald-400 font-medium">
-                      {person.roi}%
+                      {person.avg_roi.toLocaleString()}x
                     </td>
                   </tr>
                 ))}
