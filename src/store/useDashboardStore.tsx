@@ -29,8 +29,8 @@ interface DashboardState {
   isLoading: boolean;
   error: string | null;
 
-  // Updated to allow undefined (All Time)
-  fetchDashboardData: (dateRange?: DateRange) => Promise<void>;
+  // Updated to allow undefined (All Time) and limit
+  fetchDashboardData: (dateRange?: DateRange, limit?: number) => Promise<void>;
 }
 
 const INITIAL_KPI_STATE = {
@@ -46,19 +46,25 @@ export const useDashboardStore = create<DashboardState>((set) => ({
   isLoading: false,
   error: null,
 
-  fetchDashboardData: async (dateRange) => {
+  fetchDashboardData: async (dateRange, limit = 10) => {
     set({ isLoading: true, error: null });
 
     try {
       // LOGIC FIX: If dateRange is undefined, send nulls to backend
-      const payload = dateRange?.from 
+      const basePayload = dateRange?.from 
         ? { from: dateRange.from, to: dateRange.to ?? dateRange.from }
         : { from: null, to: null };
 
-      const requestOptions = {
+      const analyticsOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(basePayload),
+      };
+
+      const performersOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...basePayload, limit }),
       };
 
       // Mock Data Handler: If all time, we simulate a very old start date for the mock filter
@@ -66,8 +72,8 @@ export const useDashboardStore = create<DashboardState>((set) => ({
       const mockToDate = dateRange?.to ?? new Date();
 
       const [tiktokKpiResponse, tiktokInfluencersResponse, scriptsData] = await Promise.all([
-        fetch("https://n8n.aldazosa-n8n.xyz/webhook/tiktok/analytics", requestOptions),
-        fetch("https://n8n.aldazosa-n8n.xyz/webhook/tiktok/best-performers", requestOptions),
+        fetch("/api/proxy/n8n/tiktok/analytics", analyticsOptions),
+        fetch("/api/proxy/n8n/tiktok/best-performers", performersOptions),
         // Pass fallback dates to mock function if dateRange is undefined
         fetchMockData(getFilteredScripts(mockFromDate, mockToDate))
       ]);

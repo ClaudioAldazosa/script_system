@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Loader2, LayoutDashboard, AlertCircle, CalendarX } from "lucide-react"; 
+import { Loader2, LayoutDashboard, AlertCircle, CalendarX, ChevronDown } from "lucide-react"; 
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import KPICards from "@/components/dashboard/KPICards";
 import InfluencerTable from "@/components/dashboard/InfluencerTable";
 import ScriptTable from "@/components/dashboard/ScriptTable";
@@ -16,6 +17,8 @@ import { DateRange } from "react-day-picker";
 export default function Dashboard() {
   const [platform, setPlatform] = useState<Platform | 'all'>('tiktok');
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [topFilter, setTopFilter] = useState<number>(10);
+  const topOptions = [5, 10, 15, 20, 50];
 
   const { 
     influencers: allInfluencers, 
@@ -26,8 +29,8 @@ export default function Dashboard() {
   } = useDashboardStore();
 
   useEffect(() => {
-    fetchDashboardData(dateRange);
-  }, [dateRange, fetchDashboardData]);
+    fetchDashboardData(dateRange, topFilter);
+  }, [dateRange, topFilter, fetchDashboardData]);
 
   const currentKPI = kpiData ? kpiData[platform] : null;
 
@@ -133,8 +136,34 @@ export default function Dashboard() {
                   <span className="w-1 h-6 bg-purple-500 rounded-full mr-3 shadow-[0_0_10px_rgba(168,85,247,0.8)]"></span>
                   Top Influencers
                 </h2>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="flex items-center gap-2 text-xs text-purple-300 bg-purple-950/30 border border-purple-500/20 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.1)] hover:bg-purple-950/50 transition-colors cursor-pointer outline-none">
+                      Top {topFilter}
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-32 p-1 bg-black/90 border-white/10 backdrop-blur-xl">
+                    <div className="flex flex-col gap-1">
+                      {topOptions.map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => setTopFilter(option)}
+                          className={cn(
+                            "text-left px-3 py-2 text-sm rounded-md transition-colors",
+                            topFilter === option
+                              ? "bg-purple-500/20 text-purple-300"
+                              : "text-gray-400 hover:text-white hover:bg-white/10"
+                          )}
+                        >
+                          Top {option}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
-              <InfluencerTable data={allInfluencers ?? []} />   
+              <InfluencerTable data={allInfluencers ?? []} limit={topFilter} />   
             </section>
 
             <section>

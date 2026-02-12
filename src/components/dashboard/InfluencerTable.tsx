@@ -7,12 +7,13 @@ import { cn } from "@/lib/utils";
 
 interface InfluencerTableProps {
   data: Influencer[];
+  limit?: number;
 }
 
 type SortField = 'account' | 'total_revenue' | 'roas' | 'avg_roi';
 type SortDirection = 'asc' | 'desc';
 
-export default function InfluencerTable({ data }: InfluencerTableProps) {
+export default function InfluencerTable({ data, limit = 10 }: InfluencerTableProps) {
   const [sortField, setSortField] = useState<SortField>('total_revenue');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
@@ -40,7 +41,7 @@ export default function InfluencerTable({ data }: InfluencerTableProps) {
     }
     
     return 0;
-  });
+  }).slice(0, limit);
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ArrowUpDown className="ml-2 h-4 w-4 text-gray-500" />;

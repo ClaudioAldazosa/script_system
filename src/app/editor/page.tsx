@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot } from "lucide-react";
+import { Send, Bot, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { fetchMockData } from "@/lib/mock-data";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Message {
   id: string;
@@ -17,7 +18,20 @@ export default function EditorPage() {
     { id: '1', role: 'assistant', content: 'Hello! I can help you edit your scripts. Paste your script here or tell me what you need.' }
   ]);
   const [input, setInput] = useState("");
+  const [selectedModel, setSelectedModel] = useState("Cocoa");
+  const models = ["Cocoa", "Spike", "Longevity Mix", "Turk"];
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Generate a unique session ID for the user's chat session
+  const [sessionId] = useState(() => {
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
+      return window.crypto.randomUUID();
+    }
+    // Fallback for older browsers
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  });
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,27 +41,46 @@ export default function EditorPage() {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 150)}px`;
+    }
+  }, [input]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e as any);
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: async (prompt: string) => {
-      // Simulate n8n webhook call
-      return fetchMockData({
-        response: `Here is a revised version based on "${prompt}"`,
-        script: `[HOOK]
-Do you struggle with low ROAS?
+      const modelSlug = selectedModel.toLowerCase().replace(/\s+/g, "-");
+      const response = await fetch(`/api/proxy/n8n/chat/${modelSlug}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          chatInput: prompt,
+          sessionId: sessionId
+        }),
+      });
 
-[PROBLEM]
-Most dropshippers fail because their creative is boring.
+      if (!response.ok) {
+        throw new Error('Error en n8n');
+      }
 
-[SOLUTION]
-Introducing the Script AI Editor. It writes high-converting scripts in seconds.
-
-[CTA]
-Try it now and double your conversions.`
-      }, 1500);
+      return response.json();
     },
     onSuccess: (data) => {
-      // Format the message to include the script clearly
-      const content = `${data.response}\n\n---\n\n${data.script}`;
+      // Extract the message from the response object
+      // data is { mensaje: "..." }
+      const textContent = data.mensaje || data.output || data.response || JSON.stringify(data);
+      
+      const content = textContent;
       setMessages(prev => [...prev, { id: Date.now().toString(), role: 'assistant', content }]);
     }
   });
@@ -71,9 +104,32 @@ Try it now and double your conversions.`
             AI Script Assistant
           </span>
         </h2>
-        <span className="text-xs text-cyan-300 bg-cyan-950/30 border border-cyan-500/20 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.1)]">
-          Gemini 1.5 Pro
-        </span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="flex items-center gap-2 text-xs text-cyan-300 bg-cyan-950/30 border border-cyan-500/20 px-3 py-1 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.1)] hover:bg-cyan-950/50 transition-colors cursor-pointer outline-none">
+              {selectedModel}
+              <ChevronDown className="w-3 h-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-1 bg-black/90 border-white/10 backdrop-blur-xl">
+            <div className="flex flex-col gap-1">
+              {models.map((model) => (
+                <button
+                  key={model}
+                  onClick={() => setSelectedModel(model)}
+                  className={cn(
+                    "text-left px-3 py-2 text-sm rounded-md transition-colors",
+                    selectedModel === model
+                      ? "bg-cyan-500/20 text-cyan-300"
+                      : "text-gray-400 hover:text-white hover:bg-white/10"
+                  )}
+                >
+                  {model}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-thin scrollbar-thumb-purple-500/20 scrollbar-track-transparent">
@@ -107,23 +163,32 @@ Try it now and double your conversions.`
             </div>
           </div>
         )}
+        {mutation.isError && (
+          <div className="flex justify-center my-4">
+            <div className="bg-red-500/10 text-red-400 px-4 py-2 rounded-lg text-sm border border-red-500/20">
+              Error: {mutation.error.message || "Failed to connect to the webhook. Please try again."}
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 border-t border-white/10 bg-white/5 backdrop-blur-md">
-        <form onSubmit={handleSubmit} className="flex gap-3 relative">
-          <input
-            type="text"
+        <form onSubmit={handleSubmit} className="flex gap-3 relative items-end">
+          <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Describe your script idea..."
-            className="flex-1 rounded-xl bg-gray-900/50 border border-white/10 px-5 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-inner"
+            className="flex-1 rounded-xl bg-gray-900/50 border border-white/10 px-5 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all shadow-inner resize-none min-h-[46px] max-h-[150px] scrollbar-thin scrollbar-thumb-purple-500/20 scrollbar-track-transparent"
             disabled={mutation.isPending}
+            rows={1}
           />
           <button
             type="submit"
             disabled={mutation.isPending || !input.trim()}
-            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-white shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-white shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 h-[46px]"
           >
             <Send className="h-5 w-5" />
           </button>

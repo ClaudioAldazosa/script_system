@@ -29,7 +29,9 @@ export interface KPI {
 }
 
 export interface DailyData {
-  date: string;
+  graph_date: string;       // Antes era: date
+  daily_revenue: number;    // Antes era: revenue
+  daily_ad_spend: number;
   revenue: number;
   spend: number;
   roas: number;
